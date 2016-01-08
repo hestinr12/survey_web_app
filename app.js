@@ -1,10 +1,17 @@
 var express = require('express');
-var session = require('express-session')
+var session = require('express-session');
 var basicAuth = require('basic-auth');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+var jade = require('jade');
 
 var app = express();
 var adminAccout = {'name': 'sumome', 'pass': 'tacos'};
+
+/*
+	Template Engine
+*/
+app.set('views', './views');
+app.set('view engine', 'jade');
 
 /*
 	Middleware for all routes
@@ -22,21 +29,61 @@ app.use(session({
 		POST '/:survey_id' - Receive the result of a url-encoded form
 */
 app.get('/', function (req, res){
-	res.send('SURVEY HERE');
+	//get a relevant question
+	var temp_question = [
+		{
+			text: 'What kind of tacos do you like?',
+			question_id: 1,
+			choices: [
+				[1, 'crispy chickennnnnnnnnn nnnnnnnnnnnn nnnnnnnnnnnnn nnnn nnnnnnnnnnnnnn nnnnnn nn'],
+				[2, 'soft chicken'],
+				[3, 'crispy shredded beef'],
+				[4, 'soft shredded beef'],
+				[5, 'soft fish'],
+				[6, 'soft veggie'],
+				[7, 'none :(']
+			]
+		},
+		{
+			text: 'What color is the sky?',
+			question_id: 2,
+			choices: [
+				[8, 'red'],
+				[9, 'blue'],
+				[10, 'green'],
+				[11, 'purple'],
+			]
+		},
+		{
+			text: 'Who\'s yo daddy?',
+			question_id: 3,
+			choices: [
+				[12, 'A Machine'],
+				[13, 'Spiderman'],
+				[14, 'Bob Ross'],
+				[15, 'You'],
+			]
+		}
+	];
+	//package data for jade (once using DB))
+
+	//render
+	res.render('random_survey.jade', temp_question[Math.floor((Math.random() * 3))]);
 });
 
-app.post('/:survey_id', function (req, res){
-	res.send(req.body.answer_id + ' picked for survey ' + req.params.survey_id);
+app.post('/result', function (req, res){
+	//res.send(req.body.answer_id + ' picked for survey ' + req.params.survey_id);
+	console.log(req.body);
+	res.redirect('/')
 });
 
 /*
 	Admin Routes
 		GET '/admin' - Sign in page (credentials predetermined)
-		POST '/login' - Authenticate the user via Basic Auth
+		POST '/login' - Authenticate the user via Basic Auth (TODO: Use bcrypt for safer authentication against the DB record)
 		GET '/logout' - Logout the user (purge session)
 
 	Protected Admin Routes
-		(TODO: Use bcrypt for safer authentication against the DB record)
 		GET 'admin/survey_questions' - List of all questions
 		GET 'admin/survey_questions/:survey_id' - List current results (TODO: Should they be able to edit?)
 		GET 'admin/new_survey' - Form to add a new survey
@@ -72,7 +119,7 @@ app.get('/admin/survey_questions', function (req, res){
 	res.send('some questions being listed here');
 });
 
-app.get('/admin/survey_questions/:survey_id' function (req, res){
+app.get('/admin/survey_questions/:survey_id', function (req, res){
 	res.send('some details about the specific survey here');
 });
 

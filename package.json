@@ -13,6 +13,7 @@
   	"express-session": "1.12.1",
   	"body-parser": "1.14.2",
   	"sequelize": "3.17.1",
-  	"basic-auth": "1.0.3"
+  	"basic-auth": "1.0.3",
+  	"jade": "1.11.0"
   }
 }
