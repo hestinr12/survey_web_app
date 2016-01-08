@@ -1,0 +1,18 @@
+{
+  "name": "sumome_challenge",
+  "version": "1.0.0",
+  "description": "A survey app for the sumome challenge",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ryan hestin",
+  "license": "ISC",
+  "dependencies": {
+  	"express": "4.13.3",
+  	"express-session": "1.12.1",
+  	"body-parser": "1.14.2",
+  	"sequelize": "3.17.1",
+  	"basic-auth": "1.0.3"
+  }
+}
