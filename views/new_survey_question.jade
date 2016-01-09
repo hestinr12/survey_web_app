@@ -1,0 +1,44 @@
+extends layout.jade
+
+append styles
+	style(type='text/css')
+		|	.top-pad { margin-top:75px; }
+		| .no-right-gutter { margin-right:0; }
+		| .no-left-gutter { margin-left:0; }
+block header
+	nav.navbar.navbar-default
+		div.container-fluid
+			div.navbar-header
+				button.navbar-toggle.collapsed(data-toggle='collapse' data-target='#navbar')
+					span.sr-only Toggle navigation
+				a.navbar-brand(href='/admin/survey_questions') Admin Panel
+			#navbar.navbar-collapse.collapse
+				ul.nav.navbar-nav
+					li
+						a(href='/admin/survey_questions') All Questions
+					li.active
+						a(href='/admin/new_survey') New Question
+				ul.nav.navbar-nav.navbar-right
+					li
+						a(href='/logout') Logout
+
+block content
+	div.row.text-center
+		div.col-md-6.col-md-offset-3
+			h2 Craft a new question for your survey collection
+	form.form-control-group(name='new_question' method='post' action='/admin/new_survey')
+		div.row
+			div.col-md-6.col-md-offset-3
+				input.form-control(type='text' name='text' placeholder='Enter Question Text' required)
+				span.text-center
+					h5 Enter a possible answer in each box!
+				#dynamic-group
+					input#answer_1.form-control(type='text' name='0' placeholder='Enter Answer Text' required)
+					input#answer_2.form-control(type='text' name='1' placeholder='Enter Answer Text' required)
+				button#add-answer.btn.btn-info.form-control(type='button') Add an Answer
+		div.row.top-pad
+			div.col-md-6.col-md-offset-3
+				button.btn.btn-success.form-control(type='submit') Submit
+
+append scripts
+	script(src='/js/dynamic_multiple_choice.js')

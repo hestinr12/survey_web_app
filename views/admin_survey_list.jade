@@ -5,7 +5,7 @@ append styles
 		| .btn { white-space:normal; }
 		| .list-group-item { white-space:normal; }
 
-block content
+block header
 	nav.navbar.navbar-default
 		div.container-fluid
 			div.navbar-header
@@ -14,23 +14,26 @@ block content
 				a.navbar-brand(href='/admin/survey_questions') Admin Panel
 			#navbar.navbar-collapse.collapse
 				ul.nav.navbar-nav
+					li.active
+						a(href='/admin/new_survey') All Questions
 					li
 						a(href='/admin/new_survey') New Question
 				ul.nav.navbar-nav.navbar-right
 					li
 						a(href='/logout') Logout
 
+block content
 	for question in questions
-		#question_row.row.text-center
-			#question_body.col-md-6.col-md-offset-3
+		div.row.text-center
+			div.col-md-6.col-md-offset-3
 				h2 #{question.text}
-		#answer_row.row
-				ul.list-group(name='answer_group' id=question_id)
-					for choice in question.choices
-						#answer_body.col-md-4.col-md-offset-4
-							li.list-group-item
-								span.badge #{choice[2]}
-								| #{choice[1]}
+		div.row
+			ul.list-group(name='answer_group' id=question_id)
+				for choice in question.choices
+					#answer_body.col-md-4.col-md-offset-4
+						li.list-group-item
+							span.badge #{choice[2]}
+							| #{choice[1]}
 
 	else
 		#notification.row.text-center

@@ -31,7 +31,7 @@ var tempQuestions = [
 		]
 	},
 	{
-		text: 'Who\'s yo daddy?',
+		text: 'Who\'s your idol?',
 		questionId: 3,
 		choices: [
 			[12, 'A Machine', 0],
@@ -51,6 +51,7 @@ app.set('view engine', 'jade');
 /*
 	Middleware for all routes
 */
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(session({
 	secret: 'sumomechallengetacos',
@@ -159,11 +160,12 @@ app.get('/admin/survey_questions', function (req, res){
 });
 
 app.get('/admin/new_survey', function (req, res){
-	res.send('form for adding a new question here');
+	res.render('new_survey_question.jade');
 });
 
 app.post('/admin/new_survey', function (req, res){
-	res.send('handling the form data for new question aaaaaand redirect...');
+	console.log(req.body);
+	res.redirect('/admin/survey_questions');
 });
 
 
