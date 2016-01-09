@@ -11,33 +11,33 @@ var tempQuestions = [
 		text: 'What kind of tacos do you like?',
 		questionId: 1,
 		choices: [
-			[1, 'crispy chickennnnnnnnnn nnnnnnnnnnnn nnnnnnnnnnnnn nnnn nnnnnnnnnnnnnn nnnnnn nn'],
-			[2, 'soft chicken'],
-			[3, 'crispy shredded beef'],
-			[4, 'soft shredded beef'],
-			[5, 'soft fish'],
-			[6, 'soft veggie'],
-			[7, 'none :(']
+			[1, 'crispy chickennnnnnnnnn nnnnnnnnnnnn nnnnnnnnnnnnn nnnn nnnnnnnnnnnnnn nnnnnn nn', 14],
+			[2, 'soft chicken', 13],
+			[3, 'crispy shredded beef', 8],
+			[4, 'soft shredded beef', 9],
+			[5, 'soft fish', 1],
+			[6, 'soft veggie', 6],
+			[7, 'none :(', 0]
 		]
 	},
 	{
 		text: 'What color is the sky?',
 		questionId: 2,
 		choices: [
-			[8, 'red'],
-			[9, 'blue'],
-			[10, 'green'],
-			[11, 'purple'],
+			[8, 'red', 2],
+			[9, 'blue', 27],
+			[10, 'green', 0],
+			[11, 'purple', 0],
 		]
 	},
 	{
 		text: 'Who\'s yo daddy?',
 		questionId: 3,
 		choices: [
-			[12, 'A Machine'],
-			[13, 'Spiderman'],
-			[14, 'Bob Ross'],
-			[15, 'You'],
+			[12, 'A Machine', 0],
+			[13, 'Spiderman', 2],
+			[14, 'Bob Ross', 43],
+			[15, 'You', 1],
 		]
 	}
 ];
@@ -78,6 +78,8 @@ app.get('/', function (req, res){
 
 	//package data for jade (once using DB))
 		//(when on the DB)
+		//will need to strip "count" out of the answer field, etc
+		//just try to make it match the current json format, see if it converts simply
 
 	//pick question
 	var pick = Math.floor((Math.random() * possibilities.length));
@@ -106,7 +108,6 @@ app.post('/result', function (req, res){
 
 	Protected Admin Routes
 		GET 'admin/survey_questions' - List of all questions
-		GET 'admin/survey_questions/:survey_id' - List current results (TODO: Should they be able to edit?)
 		GET 'admin/new_survey' - Form to add a new survey
 		POST 'admin/new_survey' - Submit a new survey to be added in
 */
@@ -136,7 +137,7 @@ app.post('/login', function (req, res){
 app.get('/logout', function(req, res){
 	delete req.session.loginErr;
 	delete req.session.admin;
-	res.redirect('admin');
+	res.redirect('/admin');
 });
 
 /*
@@ -154,18 +155,14 @@ app.use(function (req, res, next){
 	Everything below here requires Authorization
 */
 app.get('/admin/survey_questions', function (req, res){
-	res.send('some questions being listed here');
+	res.render('admin_survey_list.jade', {questions: tempQuestions});
 });
 
-app.get('/admin/survey_questions/:survey_id', function (req, res){
-	res.send('some details about the specific survey here');
-});
-
-app.get('admin/new_survey', function (req, res){
+app.get('/admin/new_survey', function (req, res){
 	res.send('form for adding a new question here');
 });
 
-app.post('admin/new_survey', function (req, res){
+app.post('/admin/new_survey', function (req, res){
 	res.send('handling the form data for new question aaaaaand redirect...');
 });
 

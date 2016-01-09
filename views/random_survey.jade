@@ -3,7 +3,7 @@ extends layout.jade
 append styles
 	style(type='text/css')
 		| .btn { white-space:normal; }
-		| .list-group-item { text-align:center; }
+		| .list-group-item { text-align:center; white-space:normal; }
 
 block content
 	if choices	
@@ -19,9 +19,8 @@ block content
 									type='submit'
 									name='answer'
 									value=question_id + '_' + choice[0]
-									style='white-space:normal;'
 								) 
-									span.text-center #{choice[1]}
+									| #{choice[1]}
 	else
 		#notification.row.text-center
 			#message.col-md-4.col-md-offset-4
