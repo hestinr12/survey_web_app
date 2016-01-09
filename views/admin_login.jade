@@ -1,0 +1,23 @@
+extends layout
+
+append styles
+	style(type='text/css')
+		| .top-pad { top-margin:10px; display:block; }
+		| .text-error { color: red; white-space: nowrap; }
+
+block content
+	#header_row.row.text-center
+		#header.col-md-4.col-md-offset-4
+			h2 Admin Access Login
+	if error
+		#error_row.row.text-center
+			#error.col-md-4.col-md-offset-4
+				p.text-error 
+					span Username or password was incorrect! Try again.
+
+	#form_row.row
+		#form.col-md-4.col-md-offset-4
+			form(name='login' method='post' action='/login').form-control-group
+					input(type='text' name='user' placeholder='Username' required).form-control
+					input(type='password' name='pass' placeholder='Password' required).form-control
+					input(type='submit' name='submit' value='Login').btn.btn-primary.form-control.top-pad
