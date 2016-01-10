@@ -3,44 +3,24 @@ var session = require('express-session');
 var basicAuth = require('basic-auth');
 var bodyParser = require('body-parser');
 var jade = require('jade');
+var Sequelize = require('sequelize');
+
+var config = require('./config');
+var surveyQuestionModel = require('./models/survey_question.js').Model;
+var answerModel = require('./models/answer.js').Model;
 
 var app = express();
-var adminAccout = {user: 'admin', pass: 'taco'};
-var tempQuestions = [
-	{
-		text: 'What kind of tacos do you like?',
-		questionId: 1,
-		choices: [
-			[1, 'crispy chickennnnnnnnnn nnnnnnnnnnnn nnnnnnnnnnnnn nnnn nnnnnnnnnnnnnn nnnnnn nn', 14],
-			[2, 'soft chicken', 13],
-			[3, 'crispy shredded beef', 8],
-			[4, 'soft shredded beef', 9],
-			[5, 'soft fish', 1],
-			[6, 'soft veggie', 6],
-			[7, 'none :(', 0]
-		]
-	},
-	{
-		text: 'What color is the sky?',
-		questionId: 2,
-		choices: [
-			[8, 'red', 2],
-			[9, 'blue', 27],
-			[10, 'green', 0],
-			[11, 'purple', 0],
-		]
-	},
-	{
-		text: 'Who\'s your idol?',
-		questionId: 3,
-		choices: [
-			[12, 'A Machine', 0],
-			[13, 'Spiderman', 2],
-			[14, 'Bob Ross', 43],
-			[15, 'You', 1],
-		]
-	}
-];
+var adminAccount = config.adminAccount;
+var tempQuestions = config.tempQuestions;
+
+/*
+	Set up databases
+*/
+var sequelize = new Sequelize(config.databaseURI);
+SurveyQuestion = sequelize.define('SurveyQuestion', surveyQuestionModel);
+Answer = sequelize.define('Answer', answerModel);
+SurveyQuestion.hasMany(Answer);
+
 
 /*
 	Template Engine
@@ -54,7 +34,7 @@ app.set('view engine', 'jade');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(session({
-	secret: 'sumomechallengetacos',
+	secret: config.sessionSecret,
 	resave: true,
 	saveUninitialized: true	
 }));
@@ -70,30 +50,49 @@ app.get('/', function (req, res){
 	if(!req.session.seenQuestions){
 		req.session.seenQuestions = [];
 	}
+
 	console.log(req.session.seenQuestions);
 
-	//get possibilities (!!!!!!! Done via DB query eventually !!!!!!!)
-	var possibilities = tempQuestions.filter(function (value) {
-		return req.session.seenQuestions.indexOf(value.questionId) == -1;
-	});
+	if(req.session.seenQuestions.length > 0) {
+		SurveyQuestion.find({
+		  include: [ Answer ],
+		  where: {
+		  	id: {
+		  		notIn: req.session.seenQuestions
+		  	}
+		  }
+		}).then(function (result){
+			console.log(result);
+			if(result) {
+				req.session.seenQuestions.push(result.dataValues.id);
+			}
+			res.render('random_survey.jade', result);
+		});
+	} else {
+		SurveyQuestion.find({
+			include: [ Answer ]
+		})
+		.then(function (result){
+			console.log(result);
+			if(result) {
+				req.session.seenQuestions.push(result.dataValues.id);
+			}
 
-	//package data for jade (once using DB))
-		//(when on the DB)
-		//will need to strip "count" out of the answer field, etc
-		//just try to make it match the current json format, see if it converts simply
+			res.render('random_survey.jade', result);
+		});
+	}
 
-	//pick question
-	var pick = Math.floor((Math.random() * possibilities.length));
-	
 	//mark session
+	/*
 	try{
 		req.session.seenQuestions.push(possibilities[pick].questionId)
 	} catch(e) {
 		console.log(e);
 	}
+	*/
 
 	//render
-	res.render('random_survey.jade', possibilities[pick]);
+	//res.render('random_survey.jade', possibilities[pick]);
 });
 
 app.post('/result', function (req, res){
@@ -125,7 +124,7 @@ app.get('/admin', function (req, res){
 });
 
 app.post('/login', function (req, res){
-	if (req.body.user == adminAccout.user && req.body.pass == adminAccout.pass){
+	if (req.body.user == adminAccount.user && req.body.pass == adminAccount.pass){
 		req.session.admin = true;
 		req.session.loginErr = false;
 		res.redirect('/admin/survey_questions');
@@ -142,7 +141,7 @@ app.get('/logout', function(req, res){
 });
 
 /*
-	Middleware for Basic Auth
+	Middleware for psuedo basic auth
 */
 app.use(function (req, res, next){
 	if(req.session.admin) {
@@ -156,7 +155,11 @@ app.use(function (req, res, next){
 	Everything below here requires Authorization
 */
 app.get('/admin/survey_questions', function (req, res){
-	res.render('admin_survey_list.jade', {questions: tempQuestions});
+	SurveyQuestion
+		.findAll({ include: [ Answer ] })
+		.then(function (packedData){
+			res.render('admin_survey_list.jade', {questions: packedData});
+		});
 });
 
 app.get('/admin/new_survey', function (req, res){
@@ -164,10 +167,35 @@ app.get('/admin/new_survey', function (req, res){
 });
 
 app.post('/admin/new_survey', function (req, res){
-	console.log(req.body);
-	res.redirect('/admin/survey_questions');
+	var surveyQuestionData = {};
+	var answersData = [];
+
+	for (key in req.body) {
+		if (key == 'text') {
+			surveyQuestionData = {
+				text: req.body[key]
+			}
+		} else {
+			answersData.push({
+				text: req.body[key]
+			});
+		}
+	}
+
+	sequelize.transaction(function (t) {
+		return SurveyQuestion.create(surveyQuestionData, {transaction: t}).then(function (surveyQuestion) {
+				return sequelize.Promise.map(answersData, function (answerData) {
+					return Answer.create(answerData, {transaction: t}).then(function (answer) {
+							return surveyQuestion.addAnswer(answer, {transaction: t});
+						});
+				});
+			});
+	})
+	.then(function (result) {
+		res.redirect('/admin/survey_questions');
+	});
 });
 
-
-
-app.listen(process.env.PORT || 8000);
+sequelize.sync().then(function (){
+	app.listen(process.env.PORT || 8000);
+});
