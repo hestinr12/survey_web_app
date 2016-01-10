@@ -16,14 +16,16 @@ You'll need MySQL (available using [Homebrew](http://brew.sh) via `brew install 
 
 1. `git clone https://github.com/hestinr12/survey_web_app.git`
 
-2. `npm install`
+2. `cd survey_web_app`
 
-3. `mysql -uroot < utilities/mysql_setup.sql`
+3. `npm install`
+
+4. `mysql -uroot < utilities/mysql_setup.sql`
   > This will setup a test database called `sumo_dev` and create a new MySQL user for interacting with it. The app provides a default URI in the `config.js` file that is based on the credentials created using this script. You will need to edit the URI in the config if you choose not to do this step.
 
-4. `node app`
+5. `node app`
 
-5. `http://localhost:8000` + route
+6. `http://localhost:8000` + route
 
 ---
 
