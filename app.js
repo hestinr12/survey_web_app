@@ -45,8 +45,7 @@ app.use(session({
 		POST '/:survey_id' - Receive the result of a url-encoded form
 */
 app.get('/', function (req, res){
-
-	//init session variables
+	//init session variable to play nice with the rest of the logic
 	if(!req.session.seenQuestions){
 		req.session.seenQuestions = [];
 	}
@@ -62,7 +61,6 @@ app.get('/', function (req, res){
 		  	}
 		  }
 		}).then(function (result){
-			console.log(result);
 			if(result) {
 				req.session.seenQuestions.push(result.dataValues.id);
 			}
@@ -73,7 +71,6 @@ app.get('/', function (req, res){
 			include: [ Answer ]
 		})
 		.then(function (result){
-			console.log(result);
 			if(result) {
 				req.session.seenQuestions.push(result.dataValues.id);
 			}
@@ -81,22 +78,20 @@ app.get('/', function (req, res){
 			res.render('random_survey.jade', result);
 		});
 	}
-
-	//mark session
-	/*
-	try{
-		req.session.seenQuestions.push(possibilities[pick].questionId)
-	} catch(e) {
-		console.log(e);
-	}
-	*/
-
-	//render
-	//res.render('random_survey.jade', possibilities[pick]);
 });
 
 app.post('/result', function (req, res){
-	console.log(req.body);
+	Answer.find({
+		where: {
+			id: req.body.answer
+		}
+	})
+	.then(function (result) {
+		if(result) {
+			result.increment('count');
+		}
+	});
+
 	res.redirect('/')
 });
 
@@ -156,7 +151,7 @@ app.use(function (req, res, next){
 */
 app.get('/admin/survey_questions', function (req, res){
 	SurveyQuestion
-		.findAll({ include: [ Answer ] })
+		.findAll({ include: [ Answer ], order: [['createdAt', 'DESC'], [Answer, 'count', 'DESC']] })
 		.then(function (packedData){
 			res.render('admin_survey_list.jade', {questions: packedData});
 		});
