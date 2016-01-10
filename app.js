@@ -50,49 +50,54 @@ app.get('/', function (req, res){
 		req.session.seenQuestions = [];
 	}
 
-	console.log(req.session.seenQuestions);
-
+	var queryAttributes = {}
 	if(req.session.seenQuestions.length > 0) {
-		SurveyQuestion.find({
-		  include: [ Answer ],
+		queryAttributes = {
+			include: [ Answer ],
 		  where: {
-		  	id: {
-		  		notIn: req.session.seenQuestions
-		  	}
-		  }
-		}).then(function (result){
-			if(result) {
-				req.session.seenQuestions.push(result.dataValues.id);
+		  	id: { notIn: req.session.seenQuestions }
 			}
-			res.render('random_survey.jade', result);
-		});
+		}
 	} else {
-		SurveyQuestion.find({
+		queryAttributes = {
 			include: [ Answer ]
-		})
+		}
+	}
+	
+	SurveyQuestion
+		.find(queryAttributes)
 		.then(function (result){
 			if(result) {
 				req.session.seenQuestions.push(result.dataValues.id);
 			}
-
 			res.render('random_survey.jade', result);
+		})
+		.catch(function (err) {
+			console.log('From \'/\': ' + err);
+			res.status(502).send('Status 502 - Internal Server Error');
 		});
-	}
 });
 
 app.post('/result', function (req, res){
-	Answer.find({
+	var queryAttributes = {
 		where: {
 			id: req.body.answer
 		}
-	})
-	.then(function (result) {
-		if(result) {
-			result.increment('count');
-		}
-	});
+	}
 
-	res.redirect('/')
+	Answer
+		.find(queryAttributes)
+		.then(function (result) {
+			//FIXME: Fails quietly if no result. Not good.
+			if(result) {
+				result.increment('count');
+				res.redirect('/');
+			}
+		})
+		.catch(function (err) {
+			console.log('From \'/\': ' + err);
+			res.status(502).send('Status 502 - Internal Server Error');
+		});
 });
 
 /*
@@ -147,13 +152,24 @@ app.use(function (req, res, next){
 });
 
 /*
-	Everything below here requires Authorization
+	Everything below here requires authenticated session
 */
 app.get('/admin/survey_questions', function (req, res){
+	var queryAttributes = {
+		include: [ Answer ],
+		order: [
+			['createdAt', 'DESC'], 
+			[Answer, 'count', 'DESC']] 
+	}
+
 	SurveyQuestion
-		.findAll({ include: [ Answer ], order: [['createdAt', 'DESC'], [Answer, 'count', 'DESC']] })
+		.findAll(queryAttributes)
 		.then(function (packedData){
 			res.render('admin_survey_list.jade', {questions: packedData});
+		})
+		.catch(function (err) {
+			console.log('From \'/admin/survey_questions\': ' + err);
+			res.status(502).send('Status 502 - Internal Server Error');
 		});
 });
 
@@ -177,18 +193,24 @@ app.post('/admin/new_survey', function (req, res){
 		}
 	}
 
-	sequelize.transaction(function (t) {
-		return SurveyQuestion.create(surveyQuestionData, {transaction: t}).then(function (surveyQuestion) {
-				return sequelize.Promise.map(answersData, function (answerData) {
-					return Answer.create(answerData, {transaction: t}).then(function (answer) {
-							return surveyQuestion.addAnswer(answer, {transaction: t});
-						});
+	//Promise chain for the transaction...it's kinda ugly, but apparently the accepted method?
+	sequelize
+		.transaction(function (t) {
+			return SurveyQuestion.create(surveyQuestionData, {transaction: t}).then(function (surveyQuestion) {
+					return sequelize.Promise.map(answersData, function (answerData) {
+						return Answer.create(answerData, {transaction: t}).then(function (answer) {
+								return surveyQuestion.addAnswer(answer, {transaction: t});
+							});
+					});
 				});
-			});
-	})
-	.then(function (result) {
-		res.redirect('/admin/survey_questions');
-	});
+		})
+		.then(function (result) {
+			res.redirect('/admin/survey_questions');
+		})
+		.catch(function (err) {
+			console.log('From \'/admin/survey_questions\': ' + err);
+			res.status(502).send('Status 502 - Internal Server Error');
+		});
 });
 
 sequelize.sync().then(function (){
