@@ -67,9 +67,6 @@ app.get('/', function (req, res){
 	SurveyQuestion
 		.find(queryAttributes)
 		.then(function (result){
-			if(result) {
-				req.session.seenQuestions.push(result.dataValues.id);
-			}
 			res.render('random_survey.jade', result);
 		})
 		.catch(function (err) {
@@ -80,9 +77,7 @@ app.get('/', function (req, res){
 
 app.post('/result', function (req, res){
 	var queryAttributes = {
-		where: {
-			id: req.body.answer
-		}
+		where: { id: req.body.answer }
 	}
 
 	Answer
@@ -90,6 +85,7 @@ app.post('/result', function (req, res){
 		.then(function (result) {
 			//FIXME: Fails quietly if no result. Not good.
 			if(result) {
+				req.session.seenQuestions.push(result.dataValues.SurveyQuestionId);
 				result.increment('count');
 				res.redirect('/');
 			}
