@@ -50,17 +50,13 @@ app.get('/', function (req, res){
 		req.session.seenQuestions = [];
 	}
 
-	var queryAttributes = {}
+	var queryAttributes = { 
+		order: [ Sequelize.fn( 'RAND' ) ],
+		include: [ Answer ]
+	}
 	if(req.session.seenQuestions.length > 0) {
-		queryAttributes = {
-			include: [ Answer ],
-		  where: {
+		queryAttributes.where = {
 		  	id: { notIn: req.session.seenQuestions }
-			}
-		}
-	} else {
-		queryAttributes = {
-			include: [ Answer ]
 		}
 	}
 	
