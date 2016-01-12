@@ -1,6 +1,6 @@
 #DB-Answer-Refactor
 
-A possiblle refactor of the existing system could create a new 1-M relation between Answers and (newly created) Responses. This would allow more granular data around responses, particularly if there is interest in Time/Response relationships for certain questions.
+A possible refactor of the existing system could create a new 1-M relation between Answers and (newly created) Responses. This would allow more granular data around responses, particularly if there is interest in Time/Response relationships for certain questions.
 
 
 
