@@ -8,6 +8,7 @@ var Sequelize = require('sequelize');
 var config = require('./config');
 var surveyQuestionModel = require('./models/survey_question.js').Model;
 var answerModel = require('./models/answer.js').Model;
+var responseModel = require('./models/response.js').Model;
 
 var app = express();
 var adminAccount = config.adminAccount;
@@ -17,9 +18,11 @@ var tempQuestions = config.tempQuestions;
 	Set up databases
 */
 var sequelize = new Sequelize(config.databaseURI);
-SurveyQuestion = sequelize.define('SurveyQuestion', surveyQuestionModel);
-Answer = sequelize.define('Answer', answerModel);
+var SurveyQuestion = sequelize.define('SurveyQuestion', surveyQuestionModel);
+var Answer = sequelize.define('Answer', answerModel);
+var Response = sequelize.define('Response', responseModel);
 SurveyQuestion.hasMany(Answer);
+Answer.hasMany(Response);
 
 
 /*

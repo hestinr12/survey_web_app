@@ -1,3 +1,12 @@
+#DB-Answer-Refactor
+
+A possiblle refactor of the existing system could create a new 1-M relation between Answers and (newly created) Responses. This would allow more granular data around responses, particularly if there is interest in Time/Response relationships for certain questions.
+
+
+
+
+
+
 # Survey App
 A web application using Node/Express/Sequelize/MySQL/Jade/Bootstrap/etc for serving a simple survey app!
 
