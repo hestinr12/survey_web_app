@@ -42,7 +42,7 @@ app.use(session({
 /*
 	Survey routes
 		GET '/' - Return a rendered form with a random survey question
-		POST '/:survey_id' - Receive the result of a url-encoded form
+		POST '/result' - Receive the result of a url-encoded form
 */
 app.get('/', function (req, res){
 	//init session variable to play nice with the rest of the logic
