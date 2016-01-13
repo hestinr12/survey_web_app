@@ -52,7 +52,6 @@ app.get('/', function (req, res){
 
 	var queryAttributes = { 
 		order: [ Sequelize.fn( 'RAND' ) ],
-		include: [ Answer ]
 	}
 	if(req.session.seenQuestions.length > 0) {
 		queryAttributes.where = {
@@ -62,8 +61,15 @@ app.get('/', function (req, res){
 	
 	SurveyQuestion
 		.find(queryAttributes)
-		.then(function (result){
-			res.render('random_survey.jade', result);
+		.then(function (question){
+			question.getAnswers().then(function (answers) {
+				var packedViewData = {
+					question: question, 
+					answers: answers
+				}
+
+				res.render('random_survey.jade', packedViewData);
+			});
 		})
 		.catch(function (err) {
 			console.log('From \'/\': ' + err);
