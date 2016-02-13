@@ -31,7 +31,7 @@ app.set('view engine', 'jade');
 /*
 	Middleware for all routes
 */
-app.use(express.static('public'));
+//app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(session({
 	secret: config.sessionSecret,
@@ -69,8 +69,10 @@ app.get('/', function (req, res){
 		.then(function (result){
 			if(result) {
 				req.session.seenQuestions.push(result.dataValues.id);
+				res.render('random_survey.jade', result);
+			} else {
+				res.render('random_survey.jade');
 			}
-			res.render('random_survey.jade', result);
 		})
 		.catch(function (err) {
 			console.log('From \'/\': ' + err);
